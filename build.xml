@@ -1,0 +1,60 @@
+<project>
+	<record name="log.txt" loglevel="verbose" action="start"/>
+	<property file="build.properties"/>
+	<target name="export">
+		<exec executable="exp">
+			<arg value="${credentials}"/>
+			<arg value="PARFILE=par.txt"/>
+			<arg value="OWNER=${dbusers}"/>
+		</exec>
+	</target>
+	<target name="statistics">
+		<exec executable="sqlplus">
+			<arg value="${credentials}"/>
+			<arg value="@statistics.sql"/>
+		</exec>
+	</target>
+	<target name="drop">
+		<echo file="drop.sql" append="false" message="${dbusers}"/>
+		<replaceregexp file="drop.sql" flags="g" match="," replace="${line.separator}">
+		</replaceregexp>
+		
+		<replaceregexp file="drop.sql" byline="true">
+			<regexp pattern="(.*)"/>
+			<substitution expression="drop user \1 cascade;"/>
+		</replaceregexp>
+		<echo file="drop.sql" append="true" message="${line.separator}exit"/>
+		<exec executable="sqlplus">
+			<arg value="${credentials}"/>
+			<arg value="@drop.sql"/>
+		</exec>
+	</target>
+	<target name="drop-recreate" depends="drop,createusers,import"/>
+	<target name="createusers">
+		<echo file="create.sql" append="false" message="${dbusers}"/>
+		<replaceregexp file="create.sql" flags="g" match="," replace="${line.separator}">
+		</replaceregexp>
+		
+		<replaceregexp file="create.sql" byline="true">
+			<regexp pattern="(.*)"/>
+			<substitution expression="create user \1 identified by ${newpassword} ${line.separator}
+				default tablespace ${tablespace}  ${line.separator}
+				temporary tablespace ${temptablespace};  ${line.separator}
+				grant connect to \1; ${line.separator}
+				grant unlimited tablespace to \1;"/>
+		</replaceregexp>
+		<echo file="create.sql" append="true" message="${line.separator}exit  ${line.separator}"/>
+		<exec executable="sqlplus">
+			<arg value="${credentials}"/>
+			<arg value="@create.sql"/>
+		</exec>
+	</target>
+	<target name="import">
+		<exec executable="imp">
+			<arg value="${credentials}"/>
+			<arg value="PARFILE=parimport.txt"/>
+			<arg value="FROMUSER=${dbusers}"/>
+			<arg value="TOUSER=${dbusers}"/>
+		</exec>
+	</target>
+</project>

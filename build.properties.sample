@@ -1,0 +1,13 @@
+#These are the database user credentials,
+#which need to have sufficient permissions
+#This is handed over to the sqlplus commandline
+credentials=system/password@XE
+#This is a comma separated list of the database users to export/import/drop
+dbusers=user1,user2,user3
+#Upon recreation of the dropped dbusers this password will be set
+newpassword=secret
+#The default tablespace of the recreated users
+tablespace=users
+#The temp tablespaces of the recreated users
+temptablespace=temp
+
