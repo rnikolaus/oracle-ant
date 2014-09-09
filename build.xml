@@ -1,20 +1,28 @@
 <project>
 	<record name="log.txt" loglevel="verbose" action="start"/>
 	<property file="build.properties"/>
-	<target name="export">
+	<target name="export" description="Export of the user schemas">
 		<exec executable="exp">
 			<arg value="${credentials}"/>
 			<arg value="PARFILE=par.txt"/>
+			<arg value="FILE=${backupFile}"/>
 			<arg value="OWNER=${dbusers}"/>
 		</exec>
 	</target>
-	<target name="statistics">
+	<target name="statistics" description="Recreate statistics">
 		<exec executable="sqlplus">
 			<arg value="${credentials}"/>
 			<arg value="@statistics.sql"/>
 		</exec>
 	</target>
-	<target name="drop">
+	<target name="drop" description="Dropping the user schemas">
+		<fail message="Export file ${backupFile} not found, run the target export first!">
+			<condition>
+				<not>
+					<available file="${backupFile}" />
+				</not>
+			</condition>
+		</fail>
 		<echo file="drop.sql" append="false" message="${dbusers}"/>
 		<replaceregexp file="drop.sql" flags="g" match="," replace="${line.separator}">
 		</replaceregexp>
@@ -29,12 +37,11 @@
 			<arg value="@drop.sql"/>
 		</exec>
 	</target>
-	<target name="drop-recreate" depends="drop,createusers,import"/>
-	<target name="createusers">
+	<target name="drop-recreate" depends="drop,createusers,dba-grant,import"/>
+	<target name="createusers" description="Creating users and adding basic permissions">
 		<echo file="create.sql" append="false" message="${dbusers}"/>
 		<replaceregexp file="create.sql" flags="g" match="," replace="${line.separator}">
 		</replaceregexp>
-		
 		<replaceregexp file="create.sql" byline="true">
 			<regexp pattern="(.*)"/>
 			<substitution expression="create user \1 identified by ${newpassword} ${line.separator}
@@ -49,10 +56,24 @@
 			<arg value="@create.sql"/>
 		</exec>
 	</target>
-	<target name="import">
+	<target name="dba-grant" if="dbaUsers" depends="createusers" description="Adding dba permissions to the specified users">
+		<echo file="dbagrant.sql" append="false" message="${dbaUsers}"/>
+		<replaceregexp file="dbagrant.sql" flags="g" match="," replace="${line.separator}">
+		</replaceregexp>
+		<replaceregexp file="dbagrant.sql" byline="true">
+			<regexp pattern="(.*)"/>
+			<substitution expression="grant dba to \1;"/>
+		</replaceregexp>
+		<echo file="dbagrant.sql" append="true" message="${line.separator}exit  ${line.separator}"/>
+		<exec executable="sqlplus">
+			<arg value="${credentials}"/>
+			<arg value="@dbagrant.sql"/>
+		</exec>
+	</target>
+	<target name="import" description="Importing the dump">
 		<exec executable="imp">
 			<arg value="${credentials}"/>
-			<arg value="PARFILE=parimport.txt"/>
+			<arg value="FILE=${backupFile}"/>
 			<arg value="FROMUSER=${dbusers}"/>
 			<arg value="TOUSER=${dbusers}"/>
 		</exec>

@@ -1,3 +1,5 @@
+#This is the name of the backup file, which will be created
+backupFile=export.dmp
 #These are the database user credentials,
 #which need to have sufficient permissions
 #This is handed over to the sqlplus commandline
@@ -10,4 +12,8 @@ newpassword=secret
 tablespace=users
 #The temp tablespaces of the recreated users
 temptablespace=temp
+#Comma separated list of the dbusers with dba grant
+#This is a subset of dbUsers
+#Must be commented out if not applicable
+#dbaUsers=user1
 

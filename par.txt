@@ -1,6 +1,3 @@
-#OWNER=saprima,jasper,reporter
-#log=test.log
-FILE=export.dmp
 GRANTS=y
 INDEXES=y
 CONSISTENT=y
