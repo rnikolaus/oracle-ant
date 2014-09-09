@@ -12,4 +12,4 @@ Additionally you can configure users that should receive dba
 permissions.
 
 I tested this on Windows with Oracle XE.
-Use at your on risk
+Use at your own risk.
