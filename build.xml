@@ -15,7 +15,13 @@
 			<arg value="@statistics.sql"/>
 		</exec>
 	</target>
-	<target name="drop" description="Dropping the user schemas">
+	<target name="show-users" description="Show users">
+		<exec executable="sqlplus">
+			<arg value="${credentials}"/>
+			<arg value="@showUsers.sql"/>
+		</exec>
+	</target>
+	<target name="test-export-exists">
 		<fail message="Export file ${backupFile} not found, run the target export first!">
 			<condition>
 				<not>
@@ -23,6 +29,9 @@
 				</not>
 			</condition>
 		</fail>
+	</target>
+	<target name="drop" description="Dropping the user schemas" depends="test-export-exists">
+	
 		<echo file="drop.sql" append="false" message="${dbusers}"/>
 		<replaceregexp file="drop.sql" flags="g" match="," replace="${line.separator}">
 		</replaceregexp>
@@ -70,7 +79,7 @@
 			<arg value="@dbagrant.sql"/>
 		</exec>
 	</target>
-	<target name="import" description="Importing the dump">
+	<target name="import" description="Importing the dump" depends="test-export-exists">
 		<exec executable="imp">
 			<arg value="${credentials}"/>
 			<arg value="FILE=${backupFile}"/>
